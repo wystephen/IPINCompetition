@@ -33,6 +33,7 @@ import array
 
 
 class StepDetector:
+
     def __init__(self):
         self.counter = 0
         self.condidate_list = list()
@@ -134,6 +135,8 @@ class StepDetector:
             self.acc_buffer.append(acc[1, 2])
 
         return step_flag
+
+class StepDetectorSimple:
 
 
 def test_simple_data():
