@@ -36,7 +36,7 @@ class StepDetector:
 
 
 if __name__ == '__main__':
-    file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
+    file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R03-2017_S4.txt'
 
     ll = LogLoader(file_name)
 
@@ -57,6 +57,7 @@ if __name__ == '__main__':
     plt.figure()
     for i in range(1, 4):
         plt.plot(acc[:,0],acc[:,i])
+    plt.plot(acc[:,0], np.linalg.norm(acc[:,1:],axis=1),'r-')
     plt.grid()
 
 
