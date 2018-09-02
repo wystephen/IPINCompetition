@@ -40,6 +40,17 @@ class StepDetector:
         self.sigma_alpha = 0.1
         self.alpha = 0.1
 
+        self.alpha_p = 10.0
+        self.alpha_v = 10.0
+
+        self.last_index = 0
+        self.last_type = 0
+        self.last_time_p = -1.0
+        self.last_time_v = -1.0
+
+        self.Thp = 0.1
+        self.Thv = 0.1
+
     def detect_condidate(self, acc):
         if np.linalg.norm(acc[1,:]) > max(np.linalg.norm(acc[0,:]),np.linalg.norm(acc[2,:])) and \
             np.linalg.norm(acc[1,:]) > self.miu_alpha + self.sigma_alpha / self.alpha:
@@ -50,7 +61,46 @@ class StepDetector:
         else:
             return 0
 
-    def update_peak(self,acc):
+    def update_peak(self,acc,data_time):
+        self.alpha_p = np.linalg.norm(acc[1,:])
+        self.last_time_p = data_time
+
+    def update_valley(self,acc,data_time):
+        self.alpha_v = np.linalg.norm(acc[1,:])
+        self.last_time_v = data_time
+
+    def step_detection(self,acc, data_index, data_time):
+        tmp_flag = self.detect_condidate(acc)
+        step_flag = False
+
+        if tmp_flag is 1: # peak
+            if self.last_index is 0: # initial first step
+                self.last_type = tmp_flag # set to peak
+                self.update_peak(acc, data_time)
+
+            elif self.last_type is -1 and data_time - self.last_time_p > self.Thp:
+                self.last_type = tmp_flag
+                self.update_peak(acc,data_time)
+                self.miu_alpha = 0.5 * (self.alpha_v+self.alpha_p)
+            elif self.last_type is 1 and data_time - self.last_time_p < self.Thp \
+                and np.linalg.norm(acc[1,:]) > self.alpha_p:
+                self.update_peak(acc,data_time)
+
+        elif tmp_flag is -1:
+            if self.last_type is 1 and data_time-self.last_time_v  > self.Thv:
+                self.last_type = -1
+                self.update_valley(acc,data_time)
+                self.counter += 1
+                step_flag = True
+                self.miu_alpha = 0.5 * (self.alpha_p + self.alpha_v)
+            elif self.last_type is -1 and data_time-self.last_time_v < self.Thv \
+                and np.linalg.norm(acc[1,:]) < self.alpha_v:
+                self.update_valley(acc,data_time)
+
+
+        return step_flag
+
+
 
 
 
@@ -81,9 +131,13 @@ if __name__ == '__main__':
     plt.plot(acc[:,0], np.linalg.norm(acc[:,1:],axis=1),'r-')
 
     pv_flag = np.zeros(acc.shape[0])
+    step_flag = np.zeros(acc.shape[0])
     for i in range(1,acc.shape[0]-1):
         pv_flag[i] = step_detector.detect_condidate(acc[i-1:i+2,1:])
+        if step_detector.step_detection(acc[i-1:i+2,1:],i,acc[i,0]):
+            step_flag[i] = 10.0
     plt.plot(acc[:,0],pv_flag,'r*')
+    plt.plot(acc[:,0],step_flag,'y-+')
 
     plt.grid()
 
