@@ -29,6 +29,7 @@ import numpy as np
 
 from AuxiliaryTool.LogLoader import LogLoader
 
+import array
 
 class StepDetector:
     def __init__(self):
@@ -38,7 +39,7 @@ class StepDetector:
 
         self.miu_alpha = 10.0
         self.sigma_alpha = 0.1
-        self.alpha = 0.1
+        self.alpha = 5.0
 
         self.alpha_p = 10.0
         self.alpha_v = 10.0
@@ -50,6 +51,8 @@ class StepDetector:
 
         self.Thp = 0.1
         self.Thv = 0.1
+
+        self.acc_buffer = array.array('d')
 
     def detect_condidate(self, acc):
         if np.linalg.norm(acc[1,:]) > max(np.linalg.norm(acc[0,:]),np.linalg.norm(acc[2,:])) and \
@@ -96,6 +99,18 @@ class StepDetector:
             elif self.last_type is -1 and data_time-self.last_time_v < self.Thv \
                 and np.linalg.norm(acc[1,:]) < self.alpha_v:
                 self.update_valley(acc,data_time)
+
+        if step_flag:
+            if self.counter > 1:
+                all_acc = np.frombuffer(self.acc_buffer,dtype=np.float).reshape([-1,3])
+
+                self.sigma_alpha = np.std(np.linalg.norm(all_acc,axis=1))
+                self.acc_buffer  = array.array('d')
+
+        else:
+            self.acc_buffer.append(acc[1,0])
+            self.acc_buffer.append(acc[1,1])
+            self.acc_buffer.append(acc[1,2])
 
 
         return step_flag
