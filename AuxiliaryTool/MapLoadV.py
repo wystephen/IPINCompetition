@@ -70,7 +70,7 @@ class MapLoader:
         % 7) Scale (meters/pixel).
 
         '''
-        print(self.picture_info_array)
+        # print(self.picture_info_array)
 
         self.picture_list = list() # picture represented map(numpy.narray)
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     # ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/CAR')
     # ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/UJITI')
     ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/UJIUB')
-    print(ml.picture_info_array)
+    # print(ml.picture_info_array)
 
     # plt.figure()
     # plt.imshow(ml.picture_list[0])
