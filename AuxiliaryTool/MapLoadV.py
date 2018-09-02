@@ -31,6 +31,8 @@ import os
 
 from scipy.misc import imread
 
+import pyproj
+
 class MapLoader:
     def __init__(self, file_dir):
         if file_dir[-1] == '/':
@@ -70,15 +72,68 @@ class MapLoader:
         '''
         print(self.picture_info_array)
 
-        self.picture_list = list() # picture (numpy.narray)
+        self.picture_list = list() # picture represented map(numpy.narray)
 
         for i in range(self.picture_info_array.shape[0]):
             tmp_pic = imread(self.file_dir + self.picture_info_array[i,0])
             self.picture_list.append(tmp_pic)
 
 
+        # initial frame transformation parameters
+
+        import  math
+        def convert_wgs_to_utm(lon, lat):
+            utm_band = str((math.floor((lon + 180) / 6) % 60) + 1)
+            if len(utm_band) == 1:
+                utm_band = '0' + utm_band
+            if lat >= 0:
+                epsg_code = '326' + utm_band
+            else:
+                epsg_code = '327' + utm_band
+            return epsg_code
+        #
+        # setup your projections
+
+        self.centre_lon = float(self.picture_info_array[0,4])
+        self.centre_lat = float(self.picture_info_array[0,3])
+
+        utm_code = convert_wgs_to_utm(self.centre_lon, self.centre_lat)
+        crs_wgs = pyproj.Proj(init='epsg:4326')  # assuming you're using WGS84 geographic
+        crs_utm = pyproj.Proj(init='epsg:{0}'.format(utm_code))
+
+        # then cast your geographic coordinates to the projected system, e.g.
+        self.centre_x, self.centre_y = pyproj.transform(crs_wgs, crs_utm, self.centre_lon, self.centre_lat)
+        # print( x,y)
+        # x,y  =proj.transform(crs_wgs,crs_utm,input_lon+0.1,input_lat+0.1)
+        # print(x,y)
+
+    def wgs84_project(self,lon, lat):
+        x = 0
+        y = 0
+        # cx = 0
+        # cy = 0
+
+        def convert_wgs_to_utm(lon, lat):
+            import  math
+            utm_band = str((math.floor((lon + 180) / 6) % 60) + 1)
+            if len(utm_band) == 1:
+                utm_band = '0' + utm_band
+            if lat >= 0:
+                epsg_code = '326' + utm_band
+            else:
+                epsg_code = '327' + utm_band
+            return epsg_code
+
+        # setup your projections
+        utm_code = convert_wgs_to_utm(lon, lat)
+        crs_wgs = pyproj.Proj(init='epsg:4326')  # assuming you're using WGS84 geographic
+        crs_utm = pyproj.Proj(init='epsg:{0}'.format(utm_code))
 
 
+        x,y = pyproj.transform(crs_wgs,crs_utm, lon, lat)
+        # print(x,y, self.centre_x,self.centre_y)
+
+        return x - self.centre_x, y - self.centre_y
 
 
 

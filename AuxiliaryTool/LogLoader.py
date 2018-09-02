@@ -24,6 +24,7 @@
 '''
 
 
+from AuxiliaryTool.MapLoadV import MapLoader
 import numpy as np
 
 import  array
@@ -64,11 +65,25 @@ if __name__ == '__main__':
 
     ll = LogLoader(file_name)
 
+    ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/CAR')
+    print(ml.picture_info_array)
+
 
     import matplotlib.pyplot as plt
 
-    plt.figure()
+    plt.figure(1)
     plt.plot(ll.posi[:,2],ll.posi[:,3],'--*')
+    plt.grid()
+    # plt.show()
+
+    axis_pos = np.zeros([ll.posi.shape[0],2])
+
+    for i in range(axis_pos.shape[0]):
+        axis_pos[i,0], axis_pos[i,1] = ml.wgs84_project(ll.posi[i,3],ll.posi[i,2])
+    # axis_pos = axis_pos - np.mean(axis_pos,axis=0)
+
+    plt.figure(2)
+    plt.plot(axis_pos[:,0],axis_pos[:,1],'--+r')
     plt.grid()
     plt.show()
 
