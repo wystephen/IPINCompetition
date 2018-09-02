@@ -49,8 +49,11 @@ class StepDetector:
         self.last_time_p = -1.0
         self.last_time_v = -1.0
 
-        self.Thp = 0.1
-        self.Thv = 0.1
+        self.Thp = 0.2
+        self.Thv = 0.2
+
+        self.p_interval_list = list()
+        self.v_interval_list = list()
 
         self.acc_buffer = array.array('d')
 
@@ -66,10 +69,26 @@ class StepDetector:
 
     def update_peak(self,acc,data_time):
         self.alpha_p = np.linalg.norm(acc[1,:])
+        if len(self.p_interval_list) < 3:
+            self.Thp = data_time - self.last_time_p - 0.1
+        else:
+            self.p_interval_list.append(data_time-self.last_time_p)
+            self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))* 0.5
+            if len(self.p_interval_list) > 6:
+                self.p_interval_list.pop(0)
+
         self.last_time_p = data_time
 
     def update_valley(self,acc,data_time):
         self.alpha_v = np.linalg.norm(acc[1,:])
+        if len(self.v_interval_list) < 3:
+            self.Thv = data_time - self.last_time_v - 0.1
+        else:
+            self.v_interval_list.append(data_time-self.last_time_v)
+            self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list))*0.5
+            if len(self.v_interval_list) > 6:
+                self.v_interval_list.pop(0)
+
         self.last_time_v = data_time
 
     def step_detection(self,acc, data_index, data_time):
@@ -85,6 +104,7 @@ class StepDetector:
                 self.last_type = tmp_flag
                 self.update_peak(acc,data_time)
                 self.miu_alpha = 0.5 * (self.alpha_v+self.alpha_p)
+
             elif self.last_type is 1 and data_time - self.last_time_p < self.Thp \
                 and np.linalg.norm(acc[1,:]) > self.alpha_p:
                 self.update_peak(acc,data_time)
@@ -121,7 +141,7 @@ class StepDetector:
 
 
 if __name__ == '__main__':
-    file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R03-2017_S4.txt'
+    file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
 
     ll = LogLoader(file_name)
 
