@@ -31,6 +31,10 @@ import  array
 
 class LogLoader:
     def __init__(self, file_name):
+        '''
+        load log file
+        :param file_name:
+        '''
         file = open(file_name)
 
         file_lines = file.readlines()

@@ -25,8 +25,11 @@
 
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import os
+
+from scipy.misc import imread
 
 class MapLoader:
     def __init__(self, file_dir):
@@ -47,13 +50,52 @@ class MapLoader:
             print('Can not find out a calib file for build up image, the file dir is :\n',
                   self.file_dir,
                   '\n the files in such directory are:\n',
-                  os.listdir(self.file_dir))
+                  os.listdir(self.file_dir),
+                  'current value of self.calib_file_name is :\n',
+                  self.calib_file_name)
 
 
         # Load picture and parameters
-        self.picture_info_list = list() # name of map picture : '*.jpg'
+        self.picture_info_array = np.loadtxt(self.calib_file_name,comments='%',dtype=np.str).transpose().reshape([-1,7])
+        '''
+        % A building is composed of several floors. Each floor has 6 calibration data:
+        % 1) the filename of the bitmap
+        % 2) the floor number (e.g. -2, 0, 3)
+        % 3) the Building number (e.g. 1, 2, 3)
+        % 4) Latidude (in degrees) of image center, 
+        % 5) Longitude (in degrees) of image center, 
+        % 6) Rotation (in degrees) of image to be aligned to the geometric north
+        % 7) Scale (meters/pixel).
+
+        '''
+        print(self.picture_info_array)
+
         self.picture_list = list() # picture (numpy.narray)
-        self.para_array_list = list() # parameters ( latidude( in degrees), longitude(in degrees), rotation(in degrees), scale(meters/pixel))
+
+        for i in range(self.picture_info_array.shape[0]):
+            tmp_pic = imread(self.file_dir + self.picture_info_array[i,0])
+            self.picture_list.append(tmp_pic)
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    # ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/CAR')
+    # ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/UJITI')
+    ml = MapLoader('/home/steve/Data/IPIN2017Data/Track3/Map/UJIUB')
+    print(ml.picture_info_array)
+
+    # plt.figure()
+    # plt.imshow(ml.picture_list[0])
+    # plt.show()
+    for i, pic in enumerate(ml.picture_list):
+        plt.figure(i+1)
+        plt.imshow(pic)
+    plt.show()
+
 
 
 
