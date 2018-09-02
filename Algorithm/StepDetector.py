@@ -29,13 +29,10 @@ import numpy as np
 
 from AuxiliaryTool.LogLoader import LogLoader
 
+
 class StepDetector:
     def __init__(self):
         self.counter = 0
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -43,18 +40,24 @@ if __name__ == '__main__':
 
     ll = LogLoader(file_name)
 
-    acc = np.zeros([ll.acce.shape[0],4])
-    acc[:,0] = ll.acce[:,0]
-    acc[:,1:] = ll.acce[:,2:5]
-
+    acc = np.zeros([ll.acce.shape[0], 4])
+    acc[:, 0] = ll.acce[:, 0]
+    acc[:, 1:] = ll.acce[:, 2:5]
 
     # show time interval
     plt.figure()
-    plt.plot(acc[1:,0]-acc[:-1,0])
+    plt.plot(acc[1:, 0] - acc[:-1, 0])
+    time_interval_array = acc[1:,0]-acc[:-1,0]
 
-    print(np.mean(acc[:,0]),
-          np.std(acc[:,0]))
+    # print(np.mean(time_interval_array),
+    #       np.std(time_interval_array))
 
+    #
+
+    plt.figure()
+    for i in range(1, 4):
+        plt.plot(acc[:,0],acc[:,i])
+    plt.grid()
 
 
 
