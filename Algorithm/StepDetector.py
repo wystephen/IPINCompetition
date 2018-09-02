@@ -33,6 +33,26 @@ from AuxiliaryTool.LogLoader import LogLoader
 class StepDetector:
     def __init__(self):
         self.counter = 0
+        self.condidate_list = list()
+        self.condidate_value = list()
+
+        self.miu_alpha = 10.0
+        self.sigma_alpha = 0.1
+        self.alpha = 0.1
+
+    def detect_condidate(self, acc):
+        if np.linalg.norm(acc[1,:]) > max(np.linalg.norm(acc[0,:]),np.linalg.norm(acc[2,:])) and \
+            np.linalg.norm(acc[1,:]) > self.miu_alpha + self.sigma_alpha / self.alpha:
+            return 1
+        elif np.linalg.norm(acc[1,:]) < min(np.linalg.norm(acc[0,:]),np.linalg.norm(acc[2,:])) and \
+            np.linalg.norm(acc[1,:]) < self.miu_alpha - self.sigma_alpha / self.alpha:
+            return -1
+        else:
+            return 0
+
+    def update_peak(self,acc):
+
+
 
 
 if __name__ == '__main__':
@@ -53,11 +73,18 @@ if __name__ == '__main__':
     #       np.std(time_interval_array))
 
     #
+    step_detector = StepDetector()
 
     plt.figure()
     for i in range(1, 4):
         plt.plot(acc[:,0],acc[:,i])
     plt.plot(acc[:,0], np.linalg.norm(acc[:,1:],axis=1),'r-')
+
+    pv_flag = np.zeros(acc.shape[0])
+    for i in range(1,acc.shape[0]-1):
+        pv_flag[i] = step_detector.detect_condidate(acc[i-1:i+2,1:])
+    plt.plot(acc[:,0],pv_flag,'r*')
+
     plt.grid()
 
 
