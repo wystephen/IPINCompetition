@@ -52,7 +52,7 @@ class LogLoader:
 
         self.posi = np.frombuffer(posi_array,dtype=np.float).reshape([-1,6])
 
-    def set_ref_frame(self,long):
+    # def set_ref_frame(self,long):
 
 
 if __name__ == '__main__':
