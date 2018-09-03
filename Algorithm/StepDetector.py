@@ -34,7 +34,7 @@ import array
 
 class StepDetector:
 
-    def __init__(self,alpha = 1.0):
+    def __init__(self, alpha=1.0):
         self.counter = 0
         self.condidate_list = list()
         self.condidate_value = list()
@@ -72,15 +72,15 @@ class StepDetector:
     def update_peak(self, acc, data_time):
         self.alpha_p = np.linalg.norm(acc[1, :])
         if len(self.p_interval_list) < 3:
-            self.Thp = data_time - self.last_time_p - 0.1
-            # print(self.Thp,self.Thv)
+            self.Thp = data_time - self.last_time_p - 0.05
+            print(self.Thp, self.Thv)
             self.Thp = 0.2
         else:
             self.p_interval_list.append(data_time - self.last_time_p)
             self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))
             if len(self.p_interval_list) > 5:
                 self.p_interval_list.pop(0)
-            print(self.Thp,self.Thv)
+            print(self.Thp, self.Thv)
 
         self.last_time_p = data_time
 
@@ -94,7 +94,6 @@ class StepDetector:
             self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list))
             if len(self.v_interval_list) > 5:
                 self.v_interval_list.pop(0)
-
 
         self.last_time_v = data_time
 
@@ -141,7 +140,7 @@ class StepDetector:
                 self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
                 self.acc_buffer = array.array('d')
                 # print(self.sigma_alpha)
-                self.sigma_alpha = 5.0
+                # self.sigma_alpha = 5.0
 
         else:
             self.acc_buffer.append(acc[1, 0])
@@ -150,12 +149,13 @@ class StepDetector:
 
         return step_flag
 
+
 class StepDetectorSimple:
     def __init__(self):
         self.step_time = 0.12
 
-        self.pk_num= 0
-        self.vy_num= 0
+        self.pk_num = 0
+        self.vy_num = 0
         self.step_num = 0
         self.pv_flg = list()
 
@@ -170,10 +170,9 @@ class StepDetectorSimple:
         self.last_p_time = -1.0
         self.last_v_time = -1.0
 
-
         self.step_counter = 0
 
-    def step_detection(self,acc, time, index):
+    def step_detection(self, acc, time, index):
         '''
 
         :param acc:
@@ -183,8 +182,7 @@ class StepDetectorSimple:
         '''
         step_flag = False
 
-
-        if np.linalg.norm(acc[1,:]) > max(np.linalg.norm(acc[0,:]),np.linalg.norm(acc[2,:])):
+        if np.linalg.norm(acc[1, :]) > max(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])):
             self.pk_num += 1
             self.pk_ti.append(time)
             if self.pk_num is 1:
@@ -193,33 +191,29 @@ class StepDetectorSimple:
                     if dlt_t_pv_1 > self.step_time * 0.5:
                         self.step_counter += 1
                         step_flag = True
-                        self.last_pk_acc = np.linalg.norm(acc[1,:])
+                        self.last_pk_acc = np.linalg.norm(acc[1, :])
 
                     else:
                         self.pk_num -= 1
                         self.pk_ti.pop(-1)
                 else:
-                    self.step_counter +=1
+                    self.step_counter += 1
                     step_flag = True
-                    self.last_pk_acc = np.linalg.norm(acc[1,:])
+                    self.last_pk_acc = np.linalg.norm(acc[1, :])
             else:
                 if self.pk_num - self.vy_num is 1:
-                    dlt_t_pk = time - self.pk_ti[self.pk_num-1]
+                    dlt_t_pk = time - self.pk_ti[self.pk_num - 1]
                     dlt_t_pv_2 = self.pk_ti[self.pk_num] - self.vy_ti[self.vy_num]
-                    if dlt_t_pk > self.step_time and dlt_t_pv_2 > self.step_time * 0.5: # true peak
-                        self.step_counter +=1
+                    if dlt_t_pk > self.step_time and dlt_t_pv_2 > self.step_time * 0.5:  # true peak
+                        self.step_counter += 1
                         step_flag = True
-                        self.last_pk_acc = np.linalg.norm(acc[1,:])
+                        self.last_pk_acc = np.linalg.norm(acc[1, :])
                     else:
                         self.pk_num -= 1
                         self.pk_ti.pop(-1)
-                elif self.pk_num-self.vy_num > 1:
-                    acc_df = np.linalg.norm(acc[1,:])-self.last_pk_acc
+                elif self.pk_num - self.vy_num > 1:
+                    acc_df = np.linalg.norm(acc[1, :]) - self.last_pk_acc
                     # if acc_df > 0:
-
-
-
-
 
 
 def test_simple_data():
@@ -237,7 +231,7 @@ def test_simple_data():
     plt.figure()
     # for i in range(1, 4):
     #     plt.plot(acc[:, 0], acc[:, i])
-    plt.plot(acc[:,0],np.linalg.norm(acc[:,1:],axis=1))
+    plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1))
 
     step_flag = np.zeros(acc.shape[0])
     for i in range(1, acc.shape[0] - 1):
@@ -256,7 +250,6 @@ def test_ipin_data():
     acc = np.zeros([ll.acce.shape[0], 4])
     acc[:, 0] = ll.acce[:, 0]
     acc[:, 1:] = ll.acce[:, 2:5]
-
 
     # show time interval
     plt.figure()
