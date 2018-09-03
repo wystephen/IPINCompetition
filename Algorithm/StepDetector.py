@@ -34,7 +34,7 @@ import array
 
 class StepDetector:
 
-    def __init__(self, alpha=1.0):
+    def __init__(self, alpha=1.0,beta = 1.0):
         self.counter = 0
         self.condidate_list = list()
         self.condidate_value = list()
@@ -42,6 +42,8 @@ class StepDetector:
         self.miu_alpha = 10.0
         self.sigma_alpha = 1.0
         self.alpha = alpha
+
+        self.beta = beta
 
         self.alpha_p = 10.0
         self.alpha_v = 10.0
@@ -75,25 +77,31 @@ class StepDetector:
             self.Thp = data_time - self.last_time_p - 0.05
             print(self.Thp, self.Thv)
             self.Thp = 0.2
+            self.p_interval_list.append(data_time-self.last_time_p)
         else:
             self.p_interval_list.append(data_time - self.last_time_p)
-            self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))
+            self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))/self.beta
             if len(self.p_interval_list) > 5:
                 self.p_interval_list.pop(0)
-            print(self.Thp, self.Thv)
+            print(self.Thp, self.Thv,'---')
+        if self.Thp < 0.05:
+            self.Thp = 0.12
 
         self.last_time_p = data_time
 
     def update_valley(self, acc, data_time):
         self.alpha_v = np.linalg.norm(acc[1, :])
         if len(self.v_interval_list) < 3:
-            self.Thv = data_time - self.last_time_v - 0.1
+            # self.Thv = data_time - self.last_time_v - 0.1
             self.Thv = 0.2
+            self.v_interval_list.append(data_time - self.last_time_v)
         else:
             self.v_interval_list.append(data_time - self.last_time_v)
-            self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list))
+            self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list))/self.beta
             if len(self.v_interval_list) > 5:
                 self.v_interval_list.pop(0)
+        if self.Thv < 0.05:
+            self.Thv = 0.12
 
         self.last_time_v = data_time
 
@@ -218,7 +226,7 @@ class StepDetectorSimple:
 
 def test_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector(10.0)
+    step_detector = StepDetector(10.0,1.0)
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
@@ -234,10 +242,13 @@ def test_simple_data():
     plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1))
 
     step_flag = np.zeros(acc.shape[0])
+    step_alpha = np.zeros(acc.shape[0])
     for i in range(1, acc.shape[0] - 1):
         if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
             step_flag[i] = 10.0
+        step_alpha[i] = step_detector.miu_alpha
     plt.plot(acc[:, 0], step_flag, '-+r')
+    plt.plot(acc[:,0],step_alpha,'--g')
     plt.grid()
     plt.show()
 
@@ -280,5 +291,5 @@ def test_ipin_data():
 
 
 if __name__ == '__main__':
-    test_ipin_data()
-    # test_simple_data()
+    # test_ipin_data()
+    test_simple_data()
