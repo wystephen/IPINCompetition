@@ -39,7 +39,7 @@ class StepLengthEstimatorV:
 
 def test_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector(10.0)
+    step_detector = StepDetector(5.0,2.0)
     step_estimator = StepLengthEstimatorV()
 
     acc = np.zeros([data.shape[0], 4])

@@ -68,7 +68,8 @@ class StepDetector:
         :return:
         '''
         if np.linalg.norm(acc[1, :]) > max(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])) and \
-                np.linalg.norm(acc[1, :]) > self.miu_alpha + self.sigma_alpha / self.alpha:
+                np.linalg.norm(acc[1, :]) > self.miu_alpha + self.sigma_alpha / self.alpha and \
+                np.linalg.norm(acc[1, :]) >  10.5 :
             return 1
         elif np.linalg.norm(acc[1, :]) < min(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])) and \
                 np.linalg.norm(acc[1, :]) < self.miu_alpha - self.sigma_alpha / self.alpha:
@@ -328,5 +329,5 @@ def test_ipin_data():
 
 
 if __name__ == '__main__':
-    test_ipin_data()
-    # test_simple_data()
+    # test_ipin_data()
+    test_simple_data()
