@@ -34,14 +34,14 @@ import array
 
 class StepDetector:
 
-    def __init__(self):
+    def __init__(self,alpha = 1.0):
         self.counter = 0
         self.condidate_list = list()
         self.condidate_value = list()
 
         self.miu_alpha = 10.0
         self.sigma_alpha = 1.0
-        self.alpha = 11.0
+        self.alpha = alpha
 
         self.alpha_p = 10.0
         self.alpha_v = 10.0
@@ -51,8 +51,8 @@ class StepDetector:
         self.last_time_p = -1.0
         self.last_time_v = -1.0
 
-        self.Thp = 0.5
-        self.Thv = 0.5
+        self.Thp = 0.12
+        self.Thv = 0.12
 
         self.p_interval_list = list()
         self.v_interval_list = list()
@@ -94,6 +94,13 @@ class StepDetector:
         self.last_time_v = data_time
 
     def step_detection(self, acc, data_index, data_time):
+        '''
+
+        :param acc: 3 * 3 matrix, each row represent the acc at a definite time point
+        :param data_index:
+        :param data_time:
+        :return:
+        '''
         tmp_flag = self.detect_condidate(acc)
         step_flag = False
 
@@ -137,23 +144,93 @@ class StepDetector:
         return step_flag
 
 class StepDetectorSimple:
+    def __init__(self):
+        self.step_time = 0.12
+
+        self.pk_num= 0
+        self.vy_num= 0
+        self.step_num = 0
+        self.pv_flg = list()
+
+        self.pk_ti = list()
+        self.pk_ti.append(self.last_p_time)
+        self.vy_ti = list()
+        self.vy_ti.append(self.last_v_time)
+
+        self.last_pk_acc = 10.0
+        self.last_vy_acc = 0.0
+
+        self.last_p_time = -1.0
+        self.last_v_time = -1.0
+
+
+        self.step_counter = 0
+
+    def step_detection(self,acc, time, index):
+        '''
+
+        :param acc:
+        :param time:
+        :param index:
+        :return:
+        '''
+        step_flag = False
+
+
+        if np.linalg.norm(acc[1,:]) > max(np.linalg.norm(acc[0,:]),np.linalg.norm(acc[2,:])):
+            self.pk_num += 1
+            self.pk_ti.append(time)
+            if self.pk_num is 1:
+                if self.vy_num is 1:
+                    dlt_t_pv_1 = self.pk_ti[self.pk_num] - self.vy_ti[self.vy_num]
+                    if dlt_t_pv_1 > self.step_time * 0.5:
+                        self.step_counter += 1
+                        step_flag = True
+                        self.last_pk_acc = np.linalg.norm(acc[1,:])
+
+                    else:
+                        self.pk_num -= 1
+                        self.pk_ti.pop(-1)
+                else:
+                    self.step_counter +=1
+                    step_flag = True
+                    self.last_pk_acc = np.linalg.norm(acc[1,:])
+            else:
+                if self.pk_num - self.vy_num is 1:
+                    dlt_t_pk = time - self.pk_ti[self.pk_num-1]
+                    dlt_t_pv_2 = self.pk_ti[self.pk_num] - self.vy_ti[self.vy_num]
+                    if dlt_t_pk > self.step_time and dlt_t_pv_2 > self.step_time * 0.5: # true peak
+                        self.step_counter +=1
+                        step_flag = True
+                        self.last_pk_acc = np.linalg.norm(acc[1,:])
+                    else:
+                        self.pk_num -= 1
+                        self.pk_ti.pop(-1)
+                elif self.pk_num-self.vy_num > 1:
+                    acc_df = np.linalg.norm(acc[1,:])-self.last_pk_acc
+                    # if acc_df > 0:
+
+
+
+
 
 
 def test_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector()
+    step_detector = StepDetector(10.0)
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
     acc[:, 1:] = data[:, 2:5]
 
-    t_alpha = 0.4
+    t_alpha = 0.2
     for i in range(1, acc.shape[0]):
         acc[i, 1:] = t_alpha * acc[i, 1:] + (1.0 - t_alpha) * acc[i - 1, 1:]
 
     plt.figure()
-    for i in range(1, 4):
-        plt.plot(acc[:, 0], acc[:, i])
+    # for i in range(1, 4):
+    #     plt.plot(acc[:, 0], acc[:, i])
+    plt.plot(acc[:,0],np.linalg.norm(acc[:,1:],axis=1))
 
     step_flag = np.zeros(acc.shape[0])
     for i in range(1, acc.shape[0] - 1):
@@ -173,12 +250,13 @@ def test_ipin_data():
     acc[:, 0] = ll.acce[:, 0]
     acc[:, 1:] = ll.acce[:, 2:5]
 
-    t_alpha = 0.2
-    for i in range(1, acc.shape[0]):
-        acc[i, 1:] = t_alpha * acc[i, 1:] + (1.0 - t_alpha) * acc[i - 1, 1:]
+    # t_alpha = 0.2
+    # for i in range(1, acc.shape[0]):
+    #     acc[i, 1:] = t_alpha * acc[i, 1:] + (1.0 - t_alpha) * acc[i - 1, 1:]
 
     # show time interval
     plt.figure()
+    plt.title('time interval')
     plt.plot(acc[1:, 0] - acc[:-1, 0])
     time_interval_array = acc[1:, 0] - acc[:-1, 0]
 
@@ -208,4 +286,5 @@ def test_ipin_data():
 
 
 if __name__ == '__main__':
+    # test_ipin_data()
     test_simple_data()
