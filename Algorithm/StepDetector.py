@@ -161,11 +161,11 @@ class StepDetector:
 
         if step_flag:
             if self.counter > 1:
-                all_acc = np.frombuffer(self.acc_buffer, dtype=np.float).reshape([-1, 3])
+                # all_acc = np.frombuffer(self.acc_buffer, dtype=np.float).reshape([-1, 3])
                 self.miu_alpha = 0.5 * (self.alpha_p + self.alpha_v)
 
-                self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
-                self.acc_buffer = array.array('d')
+                # self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
+                # self.acc_buffer = array.array('d')
                 # print(self.sigma_alpha)
                 # self.sigma_alpha = 5.0
 
@@ -173,6 +173,12 @@ class StepDetector:
             self.acc_buffer.append(acc[1, 0])
             self.acc_buffer.append(acc[1, 1])
             self.acc_buffer.append(acc[1, 2])
+
+            if np.frombuffer(self.acc_buffer,dtype=np.float).shape[0]  > 40:
+                all_acc = np.frombuffer(self.acc_buffer, dtype=np.float).reshape([-1, 3])
+                self.acc_buffer = array.array('d')
+                self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
+
 
         return step_flag
 
@@ -245,7 +251,7 @@ class StepDetectorSimple:
 
 def test_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector(5.0,1.0)
+    step_detector = StepDetector(5.0,2.0)
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
@@ -280,6 +286,7 @@ def test_simple_data():
 
 def test_ipin_data():
     file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
+    # file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R01-2017_S4MINI.txt'
 
     ll = LogLoader(file_name)
 
@@ -297,9 +304,9 @@ def test_ipin_data():
     step_detector = StepDetector(2.0,1.0)
 
     plt.figure()
-    for i in range(1, 4):
-        plt.plot(acc[:, 0], acc[:, i])
-    plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1), 'r-')
+    # for i in range(1, 4):
+    #     plt.plot(acc[:, 0], acc[:, i])
+    plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1), '-')
 
 
     step_flag = np.zeros(acc.shape[0])
