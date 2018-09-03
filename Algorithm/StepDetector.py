@@ -257,9 +257,6 @@ def test_ipin_data():
     acc[:, 0] = ll.acce[:, 0]
     acc[:, 1:] = ll.acce[:, 2:5]
 
-    # t_alpha = 0.2
-    # for i in range(1, acc.shape[0]):
-    #     acc[i, 1:] = t_alpha * acc[i, 1:] + (1.0 - t_alpha) * acc[i - 1, 1:]
 
     # show time interval
     plt.figure()
@@ -267,11 +264,8 @@ def test_ipin_data():
     plt.plot(acc[1:, 0] - acc[:-1, 0])
     time_interval_array = acc[1:, 0] - acc[:-1, 0]
 
-    # print(np.mean(time_interval_array),
-    #       np.std(time_interval_array))
-
     #
-    step_detector = StepDetector()
+    step_detector = StepDetector(10.0)
 
     plt.figure()
     for i in range(1, 4):
