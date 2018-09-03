@@ -73,11 +73,14 @@ class StepDetector:
         self.alpha_p = np.linalg.norm(acc[1, :])
         if len(self.p_interval_list) < 3:
             self.Thp = data_time - self.last_time_p - 0.1
+            # print(self.Thp,self.Thv)
+            self.Thp = 0.2
         else:
             self.p_interval_list.append(data_time - self.last_time_p)
             self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))
             if len(self.p_interval_list) > 5:
                 self.p_interval_list.pop(0)
+            print(self.Thp,self.Thv)
 
         self.last_time_p = data_time
 
@@ -85,11 +88,13 @@ class StepDetector:
         self.alpha_v = np.linalg.norm(acc[1, :])
         if len(self.v_interval_list) < 3:
             self.Thv = data_time - self.last_time_v - 0.1
+            self.Thv = 0.2
         else:
             self.v_interval_list.append(data_time - self.last_time_v)
             self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list))
             if len(self.v_interval_list) > 5:
                 self.v_interval_list.pop(0)
+
 
         self.last_time_v = data_time
 
@@ -135,6 +140,8 @@ class StepDetector:
 
                 self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
                 self.acc_buffer = array.array('d')
+                # print(self.sigma_alpha)
+                self.sigma_alpha = 5.0
 
         else:
             self.acc_buffer.append(acc[1, 0])
@@ -223,9 +230,9 @@ def test_simple_data():
     acc[:, 0] = data[:, 0]
     acc[:, 1:] = data[:, 2:5]
 
-    t_alpha = 0.2
-    for i in range(1, acc.shape[0]):
-        acc[i, 1:] = t_alpha * acc[i, 1:] + (1.0 - t_alpha) * acc[i - 1, 1:]
+    # t_alpha = 0.2
+    # for i in range(1, acc.shape[0]):
+    #     acc[i, 1:] = t_alpha * acc[i, 1:] + (1.0 - t_alpha) * acc[i - 1, 1:]
 
     plt.figure()
     # for i in range(1, 4):
@@ -286,5 +293,5 @@ def test_ipin_data():
 
 
 if __name__ == '__main__':
-    # test_ipin_data()
-    test_simple_data()
+    test_ipin_data()
+    # test_simple_data()

@@ -59,7 +59,7 @@ def test_simple_data():
     step_flag = np.zeros(acc.shape[0])
     for i in range(1, acc.shape[0] - 1):
         if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
-            step_flag[i] = step_estimator.step_length_estimate(step_detector.miu_alpha*2.0)
+            step_flag[i] = step_estimator.step_length_estimate(step_detector.miu_alpha*2.0)+10.0
     plt.plot(acc[:, 0], step_flag, '-+r')
 
 
