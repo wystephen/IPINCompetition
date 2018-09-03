@@ -294,27 +294,32 @@ def test_ipin_data():
     time_interval_array = acc[1:, 0] - acc[:-1, 0]
 
     #
-    step_detector = StepDetector(10.0)
+    step_detector = StepDetector(2.0,1.0)
 
     plt.figure()
     for i in range(1, 4):
         plt.plot(acc[:, 0], acc[:, i])
     plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1), 'r-')
 
-    pv_flag = np.zeros(acc.shape[0])
+
     step_flag = np.zeros(acc.shape[0])
+    step_alpha = np.zeros(acc.shape[0])
+    step_p = np.zeros_like(step_alpha)
+    step_v = np.zeros_like(step_alpha)
     for i in range(1, acc.shape[0] - 1):
-        pv_flag[i] = step_detector.detect_condidate(acc[i - 1:i + 2, 1:])
         if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
             step_flag[i] = 10.0
-    plt.plot(acc[:, 0], pv_flag, 'r*')
-    plt.plot(acc[:, 0], step_flag, 'y-+')
-
+        step_alpha[i] = step_detector.miu_alpha
+        step_p[i] = step_detector.alpha_p
+        step_v[i] = step_detector.alpha_v
+    plt.plot(acc[:, 0], step_flag, '-+r')
+    plt.plot(acc[:,0],step_alpha,'--g')
+    plt.plot(acc[:,0], step_p,'--y')
+    plt.plot(acc[:,0],step_v,'--y')
     plt.grid()
-
     plt.show()
 
 
 if __name__ == '__main__':
-    # test_ipin_data()
-    test_simple_data()
+    test_ipin_data()
+    # test_simple_data()
