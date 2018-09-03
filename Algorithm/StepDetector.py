@@ -62,6 +62,11 @@ class StepDetector:
         self.acc_buffer = array.array('d')
 
     def detect_condidate(self, acc):
+        '''
+        detect standard
+        :param acc:
+        :return:
+        '''
         if np.linalg.norm(acc[1, :]) > max(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])) and \
                 np.linalg.norm(acc[1, :]) > self.miu_alpha + self.sigma_alpha / self.alpha:
             return 1
@@ -72,10 +77,16 @@ class StepDetector:
             return 0
 
     def update_peak(self, acc, data_time):
+        '''
+
+        :param acc:
+        :param data_time:
+        :return:
+        '''
         self.alpha_p = np.linalg.norm(acc[1, :])
         if len(self.p_interval_list) < 3:
             self.Thp = data_time - self.last_time_p - 0.05
-            print(self.Thp, self.Thv)
+            # print(self.Thp, self.Thv)
             self.Thp = 0.2
             self.p_interval_list.append(data_time-self.last_time_p)
         else:
@@ -83,13 +94,20 @@ class StepDetector:
             self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))/self.beta
             if len(self.p_interval_list) > 5:
                 self.p_interval_list.pop(0)
-            print(self.Thp, self.Thv,'---')
+            # print(self.Thp, self.Thv,'---')
         if self.Thp < 0.05:
             self.Thp = 0.12
 
         self.last_time_p = data_time
+        # print(self.alpha_v,self.alpha_p)
 
     def update_valley(self, acc, data_time):
+        '''
+
+        :param acc:
+        :param data_time:
+        :return:
+        '''
         self.alpha_v = np.linalg.norm(acc[1, :])
         if len(self.v_interval_list) < 3:
             # self.Thv = data_time - self.last_time_v - 0.1
@@ -124,7 +142,7 @@ class StepDetector:
             elif self.last_type is -1 and data_time - self.last_time_p > self.Thp:
                 self.last_type = tmp_flag
                 self.update_peak(acc, data_time)
-                self.miu_alpha = 0.5 * (self.alpha_v + self.alpha_p)
+                # self.miu_alpha = 0.5 * (self.alpha_v + self.alpha_p)
 
             elif self.last_type is 1 and data_time - self.last_time_p < self.Thp \
                     and np.linalg.norm(acc[1, :]) > self.alpha_p:
@@ -136,7 +154,7 @@ class StepDetector:
                 self.update_valley(acc, data_time)
                 self.counter += 1
                 step_flag = True
-                self.miu_alpha = 0.5 * (self.alpha_p + self.alpha_v)
+                # self.miu_alpha = 0.5 * (self.alpha_p + self.alpha_v)
             elif self.last_type is -1 and data_time - self.last_time_v < self.Thv \
                     and np.linalg.norm(acc[1, :]) < self.alpha_v:
                 self.update_valley(acc, data_time)
@@ -144,6 +162,7 @@ class StepDetector:
         if step_flag:
             if self.counter > 1:
                 all_acc = np.frombuffer(self.acc_buffer, dtype=np.float).reshape([-1, 3])
+                self.miu_alpha = 0.5 * (self.alpha_p + self.alpha_v)
 
                 self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
                 self.acc_buffer = array.array('d')
@@ -226,7 +245,7 @@ class StepDetectorSimple:
 
 def test_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector(10.0,1.0)
+    step_detector = StepDetector(5.0,1.0)
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
@@ -243,12 +262,18 @@ def test_simple_data():
 
     step_flag = np.zeros(acc.shape[0])
     step_alpha = np.zeros(acc.shape[0])
+    step_p = np.zeros_like(step_alpha)
+    step_v = np.zeros_like(step_alpha)
     for i in range(1, acc.shape[0] - 1):
         if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
             step_flag[i] = 10.0
         step_alpha[i] = step_detector.miu_alpha
+        step_p[i] = step_detector.alpha_p
+        step_v[i] = step_detector.alpha_v
     plt.plot(acc[:, 0], step_flag, '-+r')
     plt.plot(acc[:,0],step_alpha,'--g')
+    plt.plot(acc[:,0], step_p,'--y')
+    plt.plot(acc[:,0],step_v,'--y')
     plt.grid()
     plt.show()
 
