@@ -34,7 +34,7 @@ from Algorithm.StepLengthEstimator import StepLengthEstimatorV
 
 def test_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector(5.0, 2.0)
+    step_detector = StepDetector(3.0, 1.0)
     step_estimator = StepLengthEstimatorV()
 
     acc = np.zeros([data.shape[0], 4])
@@ -117,27 +117,27 @@ def test_simple_data():
     pos = np.frombuffer(pos_array,dtype=np.float).reshape([-1,2])
     plt.plot(pos[:,0],pos[:,1],'--+')
     plt.grid()
+    #
+    # plt.figure()
+    # plt.subplot(311)
+    # plt.title('gyr')
+    # for i in range(1,4):
+    #     plt.plot(gyr[:,0],gyr[:,i])
+    # plt.subplot(312)
+    # plt.title('mag')
+    # for i in range(1,4):
+    #     plt.plot(mag[:,0],mag[:,i],'+',label=str(i))
+    # plt.plot(mag[:,0],step_ori/np.pi * 180.0,'--+')
+    # plt.legend()
+    #
+    # plt.subplot(313)
+    # plt.title('ori')
+    # for i in range(1,4):
+    #     plt.plot(ori[:,0],ori[:,i]/np.pi * 180.0,'+')
 
-    plt.figure()
-    plt.subplot(311)
-    plt.title('gyr')
-    for i in range(1,4):
-        plt.plot(gyr[:,0],gyr[:,i])
-    plt.subplot(312)
-    plt.title('mag')
-    for i in range(1,4):
-        plt.plot(mag[:,0],mag[:,i],'+',label=str(i))
-    plt.plot(mag[:,0],step_ori/np.pi * 180.0,'--+')
-    plt.legend()
 
-    plt.subplot(313)
-    plt.title('ori')
-    for i in range(1,4):
-        plt.plot(ori[:,0],ori[:,i]/np.pi * 180.0,'+')
-
-
-    plt.figure()
-    plt.plot(np.arctan2(mag[:,1],mag[:,2])/np.pi * 180.0)
+    # plt.figure()
+    # plt.plot(np.arctan2(mag[:,1],mag[:,2])/np.pi * 180.0)
 
 
     plt.show()
